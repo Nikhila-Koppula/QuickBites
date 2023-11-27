@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "544945309479",
+    "project_id": "tic-toc-clone-app",
+    "storage_bucket": "tic-toc-clone-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:544945309479:android:3b56f05a4935e372270b02",
+        "android_client_info": {
+          "package_name": "uk.ac.tees.W9618430.tictoccloneapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACRCVkzn2sZCzB2buo74X-f6KULoQZIAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
