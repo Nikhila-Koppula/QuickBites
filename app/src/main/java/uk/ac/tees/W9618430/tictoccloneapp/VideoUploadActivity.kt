@@ -7,12 +7,20 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.FirebaseStorage
 import uk.ac.tees.W9618430.tictoccloneapp.databinding.ActivityVideoUploadBinding
+import uk.ac.tees.W9618430.tictoccloneapp.model.VideoModel
 import uk.ac.tees.W9618430.tictoccloneapp.util.UiUtil
 
 class VideoUploadActivity : AppCompatActivity() {
@@ -26,15 +34,91 @@ class VideoUploadActivity : AppCompatActivity() {
         binding = ActivityVideoUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        videoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){result->
-            if (result.resultCode == RESULT_OK){
-                selectedVideoUri = result.data?.data
-                UiUtil.showToast(this,"Got video"+selectedVideoUri.toString())
+        videoLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    selectedVideoUri = result.data?.data
+                    showPostView();
+                }
             }
-        }
-        binding.uploadView.setOnClickListener{
+        binding.uploadView.setOnClickListener {
             checkPermissionAndOpenVideoPicker()
         }
+
+        binding.submitPostBtn.setOnClickListener {
+            postVideo();
+        }
+
+        binding.cancelPostBtn.setOnClickListener {
+            finish()
+    }
+
+    }
+
+    private fun postVideo(){
+        if(binding.postCaptionInput.text.toString().isEmpty()){
+            binding.postCaptionInput.setError("Write something")
+            return;
+        }
+
+        setInProgress(true)
+        selectedVideoUri?.apply {
+            //store in firebase cloud storage
+
+           val videoRef = FirebaseStorage.getInstance()
+                .reference
+                .child("videos/"+this.lastPathSegment)
+            videoRef.putFile( this)
+                .addOnSuccessListener{
+                    videoRef.downloadUrl.addOnSuccessListener {downloadUrl->
+                        //video model store firebase firestore
+                        postToFirestore(downloadUrl.toString())
+                    }
+
+                }
+
+
+        }
+    }
+
+    private fun postToFirestore(url : String){
+        val videoModel = VideoModel(
+            FirebaseAuth.getInstance().currentUser?.uid!! + "_"+Timestamp.now().toString(),
+            binding.postCaptionInput.text.toString(),
+            url,
+         FirebaseAuth.getInstance().currentUser?.uid!!,
+            Timestamp.now(),
+        )
+        Firebase.firestore.collection("videos")
+            .document(videoModel.videoId)
+            .set(videoModel)
+            .addOnSuccessListener {
+                setInProgress(false)
+                UiUtil.showToast(applicationContext,"Video uploaded")
+                finish()
+            }.addOnFailureListener{
+                setInProgress(false)
+                UiUtil.showToast(applicationContext,"Video failed to upload")
+            }
+    }
+
+    private fun setInProgress(inProgress : Boolean){
+        if (inProgress){
+            binding.progressBar.visibility = View.VISIBLE
+            binding.submitPostBtn.visibility = View.GONE
+        }else{
+            binding.progressBar.visibility = View.GONE
+            binding.submitPostBtn.visibility = View.VISIBLE
+        }
+    }
+
+    private fun showPostView(){
+        selectedVideoUri?.let {
+            binding.postVideo.visibility = View.VISIBLE
+            binding.uploadView.visibility = View.GONE
+            Glide.with(binding.postThumbnailView).load(it).into(binding.postThumbnailView)
+        }
+
     }
 
     private fun checkPermissionAndOpenVideoPicker(){

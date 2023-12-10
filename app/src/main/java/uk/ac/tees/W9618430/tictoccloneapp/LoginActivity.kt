@@ -34,8 +34,8 @@ class LoginActivity : AppCompatActivity() {
         }
 
     }
-    fun setInProgress(inProgess : Boolean){
-        if (inProgess){
+    fun setInProgress(inProgress : Boolean){
+        if (inProgress){
             binding.progressBar.visibility = View.VISIBLE
             binding.submitBtn.visibility = View.GONE
         }else{
