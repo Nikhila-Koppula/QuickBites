@@ -6,6 +6,7 @@ import android.os.Bundle
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import uk.ac.tees.W9618430.tictoccloneapp.adapter.VideoListAdapter
 import uk.ac.tees.W9618430.tictoccloneapp.databinding.ActivityMainBinding
@@ -30,8 +31,10 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this,VideoUploadActivity::class.java))
                 }
                 R.id.bottom_menu_profile->{
-                    UiUtil.showToast(this,"Profile")
                     //Goto ProfileActivity
+                    val intent = Intent( this,ProfileActivity::class.java)
+                    intent.putExtra("profile_user_id", FirebaseAuth.getInstance().currentUser?.uid)
+                    startActivity(intent)
                 }
             }
             false
